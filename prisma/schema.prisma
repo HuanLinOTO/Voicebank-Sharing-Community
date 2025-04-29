@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  voicebanks Voicebank[]
+  songs      Song[]
+  tutorials  Tutorial[]
+}
+
+model Vocaloid {
+  id        String   @id @default(cuid())
+  name      String
+  gender    Gender
+  engines   String // 存储为JSON字符串
+  languages String // 存储为JSON字符串
+  avatarUrl String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  voicebanks Voicebank[]
+  songs      Song[]
+}
+
+model Voicebank {
+  id           String   @id @default(cuid())
+  vocaloidId   String
+  userId       String
+  filePath     String
+  samplePath   String
+  status       Status   @default(PENDING)
+  voiceprovider String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vocaloid Vocaloid @relation(fields: [vocaloidId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Song {
+  id          String   @id @default(cuid())
+  title       String
+  vocaloidId  String
+  userId      String
+  filePath    String
+  coverPath   String?
+  bilibiliUrl String?
+  lyrics      String?
+  creator     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vocaloid Vocaloid @relation(fields: [vocaloidId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tutorial {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  type        TutorialType
+  filePath    String
+  difficulty  Difficulty
+  engineType  String? // 存储为JSON字符串
+  userId      String
+  status      Status       @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Website {
+  id          String       @id @default(cuid())
+  name        String
+  url         String
+  category    WebsiteCategory
+  description String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TutorialType {
+  VOICEBANK_CREATION
+  SONG_CREATION
+  TUNING
+  OTHER
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum WebsiteCategory {
+  VOICEBANK_DOWNLOAD
+  COMMUNITY
+  TOOLS
+  OTHER
+}
